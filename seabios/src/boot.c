@@ -19,6 +19,7 @@
 #include "std/disk.h" // struct mbr_s
 #include "string.h" // memset
 #include "util.h" // irqtimer_calc show_adjust_cpu_speed_menu
+#include "bios_fonts.h"
 
 
 /****************************************************************
@@ -399,48 +400,6 @@ boot_add_cbfs(void *data, const char *desc, int prio)
 
 
 /****************************************************************
- * Keyboard calls
- ****************************************************************/
-
-// See if a keystroke is pending in the keyboard buffer.
-int
-check_for_keystroke(void)
-{
-    struct bregs br;
-    memset(&br, 0, sizeof(br));
-    br.flags = F_IF|F_ZF;
-    br.ah = 1;
-    call16_int(0x16, &br);
-    return !(br.flags & F_ZF);
-}
-
-// Return a keystroke - waiting forever if necessary.
-int
-get_raw_keystroke(void)
-{
-    struct bregs br;
-    memset(&br, 0, sizeof(br));
-    br.flags = F_IF;
-    call16_int(0x16, &br);
-    return br.ah;
-}
-
-// Read a keystroke - waiting up to 'msec' milliseconds.
-int
-get_keystroke(int msec)
-{
-    u32 end = irqtimer_calc(msec);
-    for (;;) {
-        if (check_for_keystroke())
-            return get_raw_keystroke();
-        if (irqtimer_check(end))
-            return -1;
-        yield_toirq();
-    }
-}
-
-
-/****************************************************************
  * Boot menu and BCV execution
  ****************************************************************/
 
@@ -450,7 +409,6 @@ get_keystroke(int msec)
 void
 interactive_bootmenu(void)
 {
-    int i;
     int cpu_freq = get_current_cpu_freq();
     u32 ram_size_bytes = GET_GLOBAL(LegacyRamSize);
     u32 ram_size_kb = ram_size_bytes / 1024;
@@ -459,17 +417,56 @@ interactive_bootmenu(void)
     if (ram_size_mb_rest > 0) {
         ram_size_mb += 1;
     }
-    int cpu_cache_enabled = get_cpu_cache_enabled();
-    if (cpu_cache_enabled == 0) {
+
+    struct bios_settings s;
+    memset(&s, 0, sizeof(s));
+    load_bios_settings(&s);
+
+    if (s.cache_enabled == 0) {
         setcr0(getcr0() | (CR0_CD|CR0_NW));
         wbinvd();
-    } else {
-        cpu_cache_enabled = 1;
     }
 
-    int boot_tune_enabled = get_boot_tune_enabled();
-    if (boot_tune_enabled != 0) {
-        play_boot_tune();
+    load_custom_fonts(VGA8_F16, 0x00, 256);
+
+    if (s.boot_tune == 1) {
+        play_mushroom_tune();
+    } else if (s.boot_tune == 2) {
+        play_ducks_tune();
+    }
+
+    // Set SBCLK
+    outl(0x800038c0, 0x0cf8);
+    u32 c0 = inl(0x0cfc);
+    c0 |= (1 << 31); // C0h[31]
+    switch (s.isa_freq_index) {
+        case 1:
+        case 2:
+        case 3:
+            c0 |= (s.isa_freq_index << 14); // C0h[15:14]
+            break;
+        case 0:
+        default:
+            break;
+    }
+    outl(c0, 0x0cfc); // write value
+
+    // Set UART clocks/dividers
+    if (s.com1_clock_index == 1) {
+        u32 com1cntr = inl(0x0c00);
+        com1cntr |= (1 << 22); // cntrl[22]
+        if (s.com1_clock_ratio_index == 1) {
+            com1cntr |= (1 << 20); // cntrl[20]
+        }
+        outl(com1cntr, 0x0c00);
+    }
+    if (s.com2_clock_index == 1) {
+        u32 com2cntr = inl(0x0c04);
+        com2cntr |= (1 << 22);  // cntrl[22]
+        if (s.com2_clock_ratio_index == 1) {
+            com2cntr |= (1 << 20);  // cntrl[20]
+        }
+        outl(com2cntr, 0x0c04);
     }
 
     printf("\n");
@@ -478,8 +475,8 @@ interactive_bootmenu(void)
         printf(" ");
     }
     printf("%lu MHz", (unsigned long int)cpu_freq);
-    if (cpu_cache_enabled == 0) {
-        printf(" [L1 Cache disabled]\n");
+    if (s.cache_enabled == 0) {
+        printf(" [L1 Cache Disabled]\n");
     } else {
         printf("\n");
     }
@@ -503,86 +500,8 @@ interactive_bootmenu(void)
     while (get_keystroke(0) >= 0);
 
     if (scan_code == setup_menu_key) {
-        printf("\nSystem Setup:\n\n");
-        printf("1. Change CPU clock frequency  [%lu MHz]\n", (unsigned long int)cpu_freq);
-        printf("2. Toggle CPU L1 cache         [");
-        if (cpu_cache_enabled == 0) {
-            printf("Disabled");
-        } else {
-            printf("Enabled");
-        }
-        printf("]\n");
-        printf("3. Toggle boot tune            [");
-        if (boot_tune_enabled == 0) {
-            printf("Disabled");
-        } else {
-            printf("Enabled");
-        }
-        printf("]\n");
-        int will_reboot = 0;
-        for (;;) {
-            if (will_reboot) {
-                printf("Press any key to reboot the system for the update to take effect.");
-                get_keystroke(60000);
-                struct bregs br;
-                memset(&br, 0, sizeof(br));
-                br.code = SEGOFF(SEG_BIOS, (u32)reset_vector);
-                farcall16big(&br);
-            }
-            scan_code = get_keystroke(1000);
-            if (scan_code == 1) { // ESC
-                return;
-            } else if (scan_code == 2) {
-                printf("\n");
-                for (i = 0; i < num_cpu_freqs; i++) {
-                    printf("%d. %d MHz\n", i + 1, cpu_freqs[i]);
-                }
-                for (;;) {
-                    scan_code = get_keystroke(1000);
-                    if (scan_code == 1) { // ESC
-                        return;
-                    } else if (scan_code > 1 && scan_code <= num_cpu_freqs + 1) {
-                        int selection = scan_code - 2;
-                        set_cpu_freq(selection);
-                        printf("\nCPU frequency set to %d MHz.\n", cpu_freqs[selection]);
-                        will_reboot = 1;
-                        break;
-                    }
-                }
-            } else if (scan_code == 3) {
-                int new_value;
-                if (cpu_cache_enabled == 0) {
-                    new_value = 1;
-                } else {
-                    new_value = 0;
-                }
-                set_cpu_cache_enabled(new_value);
-                printf("\nCPU L1 cache ");
-                if (new_value == 0) {
-                    printf("disabled");
-                } else {
-                    printf("enabled");
-                }
-                printf(".\n");
-                will_reboot = 1;
-            } else if (scan_code == 4) {
-                int new_value;
-                if (boot_tune_enabled == 0) {
-                    new_value = 1;
-                } else {
-                    new_value = 0;
-                }
-                set_boot_tune_enabled(new_value);
-                printf("\nBoot tune ");
-                if (new_value == 0) {
-                    printf("disabled");
-                } else {
-                    printf("enabled");
-                }
-                printf(".\n");
-                will_reboot = 1;
-            }
-        }
+        bios_setup_main(&s);
+        return;
     }
 
     printf("\nBoot selection:\n\n");

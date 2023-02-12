@@ -7,11 +7,11 @@
 #define SPI_SECTOR_SIZE  4096
 #define SPI_PAGE_SIZE    256
 
-const u32 spi_sector_size      = SPI_SECTOR_SIZE;
-const u32 spi_page_size        = SPI_PAGE_SIZE;
-const u32 spi_sector_offset    = SPI_ROM_SIZE - SPI_SECTOR_SIZE;
-const u32 spi_crossbar_offset  = SPI_ROM_SIZE - (3 * SPI_PAGE_SIZE);
-const u32 spi_cpu_clock_offset = SPI_ROM_SIZE - SPI_PAGE_SIZE;
+const u32 spi_sector_size          = SPI_SECTOR_SIZE;
+const u32 spi_page_size            = SPI_PAGE_SIZE;
+const u32 spi_sector_offset        = SPI_ROM_SIZE - SPI_SECTOR_SIZE;
+const u32 spi_crossbar_offset      = SPI_ROM_SIZE - (3 * SPI_PAGE_SIZE);
+const u32 spi_bios_settings_offset = SPI_ROM_SIZE - SPI_PAGE_SIZE;
 
 static void write_spi_byte(u16 iobase, u8 n) {
     outb(n, iobase);

@@ -95,7 +95,7 @@ static void speaker_tone(u16 freq, unsigned int duration) {
 	speaker_disable();
 }
 
-void play_boot_tune(void) {
+void play_ducks_tune(void) {
   speaker_tone(784, 40); // G5
   mdelay(40);
   speaker_tone(784, 40); // G5
@@ -113,4 +113,35 @@ void play_boot_tune(void) {
   speaker_tone(622, 40); // D#5
   mdelay(40 + 80);
   speaker_tone(523, 40); // C5
+}
+
+void play_mushroom_tune(void) {
+  int duration = 38;
+  speaker_tone(523,  duration); // C5
+  speaker_tone(392,  duration); // G4
+  speaker_tone(523,  duration); // C5
+  speaker_tone(659,  duration); // E5
+  speaker_tone(784,  duration); // G5
+  speaker_tone(1047, duration); // C6
+  speaker_tone(784,  duration); // G5
+  speaker_tone(415,  duration); // G#4
+  speaker_tone(523,  duration); // C5
+  speaker_tone(622,  duration); // D#5
+  speaker_tone(830,  duration); // G#5
+  speaker_tone(622,  duration); // D#5
+  speaker_tone(830,  duration); // G#5
+  speaker_tone(1047, duration); // C6
+  speaker_tone(1245, duration); // D#6
+  speaker_tone(1661, duration); // G#6
+  speaker_tone(1245, duration); // D#6
+  speaker_tone(932,  duration); // A#5
+  speaker_tone(1175, duration); // D6
+  speaker_tone(1397, duration); // F6
+  speaker_tone(1865, duration); // A#6
+  speaker_tone(1397, duration); // F6
+  speaker_tone(1865, duration); // A#6
+  speaker_tone(2349, duration); // D7
+  speaker_tone(2794, duration); // F7
+  speaker_tone(3729, duration); // A#7
+  speaker_tone(2794, duration); // F7
 }

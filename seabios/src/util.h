@@ -12,28 +12,40 @@ void nbsb_write32(u8, u8, u32);
 u8 nbsb_read8(u8, u8);
 void nbsb_write8(u8, u8, u8);
 
-// llama_config.c
-extern const int num_cpu_freqs;
-extern int cpu_freqs[];
+// kbd_input.c
+int get_keystroke(int msec);
+int get_keystroke_full(int msec);
+
+// bios_setup.c
+struct bios_settings {
+    int has_changes;
+    int cpu_freq_index;
+    int cache_enabled;
+    int boot_tune;
+    int com1_clock_index;       // 0 = 1.8432 MHz, 1 = 24 MHz, 2 = 48 MHz
+    int com1_clock_ratio_index; // 0 = 1/16, 1 = 1/8. Only valid when clock_index = 48 MHz
+    int com2_clock_index;       // 0 = 1.8432 MHz, 1 = 24 MHz, 2 = 48 MHz
+    int com2_clock_ratio_index; // 0 = 1/16, 1 = 1/8. Only valid when clock_index = 48 MHz
+    int isa_freq_index;         // 0 = 8.33 MHz, 1 = 16.67 MHz
+};
 u32 get_current_cpu_freq(void);
-void set_cpu_freq(int);
-int get_cpu_cache_enabled(void);
-void set_cpu_cache_enabled(int);
-int get_boot_tune_enabled(void);
-void set_boot_tune_enabled(int);
+void load_bios_settings(struct bios_settings *s);
+void bios_setup_main(struct bios_settings *s);
+void load_custom_fonts(u8 *font_ptr, u16 ascii_position, u16 count);
 
 // spi_flash.c
 extern const u32 spi_page_size;
 extern const u32 spi_sector_offset;
 extern const u32 spi_crossbar_offset;
-extern const u32 spi_cpu_clock_offset;
+extern const u32 spi_bios_settings_offset;
 int get_spi_flash_info(void);
 u8 spi_flash_read_byte(u32);
 void spi_flash_write_byte(u32, u8);
 void spi_flash_erase_sector(u32);
 
 // speaker.c
-void play_boot_tune(void);
+void play_ducks_tune(void);
+void play_mushroom_tune(void);
 
 // apm.c
 void apm_shutdown(void);
@@ -67,9 +79,6 @@ int bootprio_find_pci_rom(struct pci_device *pci, int instance);
 int bootprio_find_named_rom(const char *name, int instance);
 struct usbdevice_s;
 int bootprio_find_usb(struct usbdevice_s *usbdev, int lun);
-int check_for_keystroke(void);
-int get_raw_keystroke(void);
-int get_keystroke(int msec);
 
 // bootsplash.c
 void enable_vga_console(void);
