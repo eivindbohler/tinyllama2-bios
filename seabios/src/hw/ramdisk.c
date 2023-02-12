@@ -55,7 +55,7 @@ ramdisk_setup(void)
     drive->type = DTYPE_RAMDISK;
     dprintf(1, "Mapping CBFS floppy %s to addr %p\n", filename, pos);
     // char *desc = znprintf(MAXDESCSIZE, "Ramdisk [%s]", &filename[10]);
-    char *desc = znprintf(MAXDESCSIZE, "TinyLlama BIOS updater");
+    char *desc = znprintf(MAXDESCSIZE, "Virtual floppy (MS-DOS 6.22)");
     boot_add_floppy(drive, desc, bootprio_find_named_rom(filename, 0));
 }
 

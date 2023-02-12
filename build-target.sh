@@ -131,7 +131,7 @@ fi
 
   # Add floppy image as ramdisk
   echo "Adding ramdisk floppy image"
-  cbfs_add ./ramdisk_720k.img -n floppyimg/fdos.img -t raw
+  cbfs_add ./msdos_2880k.img.lzma -n floppyimg/msdos_2880k.img.lzma -t raw
 
   echo "Writing crossbar data..."
   ./write-crossbar.py coreboot/build/coreboot.rom crossbar/${CROSSBAR} && \
