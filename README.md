@@ -1,6 +1,6 @@
 # TinyLlama BIOS
 
-This repo contains the tools necessary to build the [TinyLlama](https://github.com/eivindbohler/tinyllama) BIOS (Coreboot/SeaBIOS).  
+This repo contains the tools necessary to build the [TinyLlama v2](https://github.com/eivindbohler/tinyllama2) BIOS (Coreboot/SeaBIOS).  
 Based on the 86Duino project from https://github.com/roboard/build-coreboot
 
 Tested on:
@@ -42,6 +42,6 @@ $ ./build-xgcc.sh
 $ make
 ```
 
-If building is successful, the 1 MB output ROM file will be in the `out/` directory.
+If building is successful, the 2 MB output ROM file will be in the `out/` directory.
 Another file is also made - `out/xxx-padded.rom` - padded with `0xFF` to fit 8 MB, for flashing directly to the SPI ROM using a hardware programmer. The Coreboot/SeaBIOS ROM will be located at the end of this 8 MB file.
 
