@@ -26,7 +26,7 @@ struct bios_settings {
     int com1_clock_ratio_index; // 0 = 1/16, 1 = 1/8. Only valid when clock_index = 48 MHz
     int com2_clock_index;       // 0 = 1.8432 MHz, 1 = 24 MHz, 2 = 48 MHz
     int com2_clock_ratio_index; // 0 = 1/16, 1 = 1/8. Only valid when clock_index = 48 MHz
-    int isa_freq_index;         // 0 = 8.33 MHz, 1 = 16.67 MHz
+    // int isa_freq_index;         // 0 = 8.33 MHz, 1 = 16.67 MHz
 };
 u32 get_current_cpu_freq(void);
 void load_bios_settings(struct bios_settings *s);

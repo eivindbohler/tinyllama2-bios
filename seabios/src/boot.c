@@ -439,16 +439,16 @@ interactive_bootmenu(void)
     outl(0x800038c0, 0x0cf8);
     u32 c0 = inl(0x0cfc);
     c0 |= (1 << 31); // C0h[31]
-    switch (s.isa_freq_index) {
-        case 1:
-        case 2:
-        case 3:
-            c0 |= (s.isa_freq_index << 14); // C0h[15:14]
-            break;
-        case 0:
-        default:
-            break;
-    }
+    // switch (s.isa_freq_index) {
+    //     case 1:
+    //     case 2:
+    //     case 3:
+    //         c0 |= (s.isa_freq_index << 14); // C0h[15:14]
+    //         break;
+    //     case 0:
+    //     default:
+    //         break;
+    // }
     outl(c0, 0x0cfc); // write value
 
     // Set UART clocks/dividers

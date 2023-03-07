@@ -40,7 +40,7 @@
 #define COM1_CLOCK_RATIO_INDEX_OFFSET 0xC5
 #define COM2_CLOCK_INDEX_OFFSET       0xC6
 #define COM2_CLOCK_RATIO_INDEX_OFFSET 0xC7
-#define ISA_FREQ_INDEX_OFFSET         0xC8
+// #define ISA_FREQ_INDEX_OFFSET         0xC8
 
 int exit_now = 0;
 
@@ -95,15 +95,17 @@ const char *com_desc[] = {
     "you 115200 baud, 57600 (divider 2) at 48 MHz / 16 turns into 1.5 Mbaud."
 };
 
-const char isa_freq_title[] = "ISA Bus Frequency";
-const char *isa_freq_values[] = {"8.33 MHz", "16.67 MHz", "25 MHz", "33 MHz"};
-const int isa_freq_values_length = 4;
-void set_isa_freq_value(struct bios_settings *s, int value) { s->isa_freq_index = value; }
-const char *isa_freq_desc[] = {
-    "8.33 MHz is the original, most compatible ISA bus frequency.",
-    "Higher speeds are possible, but probably not a good idea if",
-    "connected peripherals don't support this."
-};
+// Disabled this for now - no use in the TinyLlama.
+//
+// const char isa_freq_title[] = "ISA Bus Frequency";
+// const char *isa_freq_values[] = {"8.33 MHz", "16.67 MHz", "25 MHz", "33 MHz"};
+// const int isa_freq_values_length = 4;
+// void set_isa_freq_value(struct bios_settings *s, int value) { s->isa_freq_index = value; }
+// const char *isa_freq_desc[] = {
+//     "8.33 MHz is the original, most compatible ISA bus frequency.",
+//     "Higher speeds are possible, but probably not a good idea if",
+//     "connected peripherals don't support this."
+// };
 
 const char exit_title[] = "Exit Without Saving?";
 const char *exit_values[] = {"No", "Yes"};
@@ -123,7 +125,7 @@ const u8 clock_array[7][6] = {
 };
 
 int selection = 0;
-const int max_selection = 5;
+const int max_selection = 4;
 
 void reboot(void)
 {
@@ -169,7 +171,7 @@ void save_settings(struct bios_settings *s)
     bios_settings[COM1_CLOCK_RATIO_INDEX_OFFSET] = (u8)s->com1_clock_ratio_index;
     bios_settings[COM2_CLOCK_INDEX_OFFSET]       = (u8)s->com2_clock_index;
     bios_settings[COM2_CLOCK_RATIO_INDEX_OFFSET] = (u8)s->com2_clock_ratio_index;
-    bios_settings[ISA_FREQ_INDEX_OFFSET]         = (u8)s->isa_freq_index;
+    //bios_settings[ISA_FREQ_INDEX_OFFSET]         = (u8)s->isa_freq_index;
 
     dprintf(1, "Erasing sector\n");
     spi_flash_erase_sector(spi_sector_offset);
@@ -197,7 +199,7 @@ void load_bios_settings(struct bios_settings *s)
         s->com1_clock_ratio_index = 0;
         s->com2_clock_index = 0;
         s->com2_clock_ratio_index = 0;
-        s->isa_freq_index = 0;
+        // s->isa_freq_index = 0;
         save_settings(s);
     } else {
         s->has_changes = 0;
@@ -208,7 +210,7 @@ void load_bios_settings(struct bios_settings *s)
         s->com1_clock_ratio_index = (int)spi_flash_read_byte(spi_bios_settings_offset + COM1_CLOCK_RATIO_INDEX_OFFSET);
         s->com2_clock_index = (int)spi_flash_read_byte(spi_bios_settings_offset + COM2_CLOCK_INDEX_OFFSET);
         s->com2_clock_ratio_index = (int)spi_flash_read_byte(spi_bios_settings_offset + COM2_CLOCK_RATIO_INDEX_OFFSET);
-        s->isa_freq_index = (int)spi_flash_read_byte(spi_bios_settings_offset + ISA_FREQ_INDEX_OFFSET);
+        // s->isa_freq_index = (int)spi_flash_read_byte(spi_bios_settings_offset + ISA_FREQ_INDEX_OFFSET);
     }
 }
 
@@ -457,35 +459,35 @@ void draw_menu_items(void)
     u16 cache_length = strlen(cache);
     u8 cache_row = 6;
 
-    char isa_freq[cap];
-    snprintf(isa_freq, cap, "%s", isa_freq_title);
-    u16 isa_freq_length = strlen(isa_freq);
-    u8 isa_freq_row = 8;
+    // char isa_freq[cap];
+    // snprintf(isa_freq, cap, "%s", isa_freq_title);
+    // u16 isa_freq_length = strlen(isa_freq);
+    // u8 isa_freq_row = 8;
 
     char com1[cap];
     snprintf(com1, cap, "%s", com1_title);
     u16 com1_length = strlen(com1);
-    u8 com1_row = 10;
+    u8 com1_row = 8;
 
     char com2[cap];
     snprintf(com2, cap, "%s", com2_title);
     u16 com2_length = strlen(com2);
-    u8 com2_row = 12;
+    u8 com2_row = 10;
 
     char boot_tune[cap];
     snprintf(boot_tune, cap, "%s", boot_tune_title);
     u16 boot_tune_length = strlen(boot_tune);
-    u8 boot_tune_row = 14;
+    u8 boot_tune_row = 12;
 
     u8 active_color = COLOR(PASSIVE_TEXT, ACTIVE_BACKGROUND);
     u8 passive_color = COLOR(ACTIVE_TEXT, BACKGROUND);
 
     print_color_string(cpu_freq, cpu_freq_length, selection == 0 ? active_color : passive_color, cpu_freq_row, std_col);
     print_color_string(cache, cache_length, selection == 1 ? active_color : passive_color, cache_row, std_col);
-    print_color_string(isa_freq, isa_freq_length, selection == 2 ? active_color : passive_color, isa_freq_row, std_col);
-    print_color_string(com1, com1_length, selection == 3 ? active_color : passive_color, com1_row, std_col);
-    print_color_string(com2, com2_length, selection == 4 ? active_color : passive_color, com2_row, std_col);
-    print_color_string(boot_tune, boot_tune_length, selection == 5 ? active_color : passive_color, boot_tune_row, std_col);
+    // print_color_string(isa_freq, isa_freq_length, selection == 2 ? active_color : passive_color, isa_freq_row, std_col);
+    print_color_string(com1, com1_length, selection == 2 ? active_color : passive_color, com1_row, std_col);
+    print_color_string(com2, com2_length, selection == 3 ? active_color : passive_color, com2_row, std_col);
+    print_color_string(boot_tune, boot_tune_length, selection == 4 ? active_color : passive_color, boot_tune_row, std_col);
 
     u8 color = COLOR(PASSIVE_TEXT, BACKGROUND);
     set_cursor_position(21, 1);
@@ -503,14 +505,14 @@ void draw_menu_items(void)
         case 1:
             desc = cache_desc;
             break;
+        // case 2:
+        //     desc = isa_freq_desc;
+        //     break;
         case 2:
-            desc = isa_freq_desc;
-            break;
         case 3:
-        case 4:
             desc = com_desc;
             break;
-        case 5:
+        case 4:
         default:
             desc = boot_tune_desc;
             break;
@@ -539,31 +541,31 @@ void draw_settings(struct bios_settings *s)
     u16 cache_length = strlen(cache);
     u8 cache_row = 6;
 
-    char isa_freq[cap];
-    snprintf(isa_freq, cap, "%s: %s", isa_freq_title, isa_freq_values[s->isa_freq_index]);
-    u16 isa_freq_length = strlen(isa_freq);
-    u8 isa_freq_row = 8;
+    // char isa_freq[cap];
+    // snprintf(isa_freq, cap, "%s: %s", isa_freq_title, isa_freq_values[s->isa_freq_index]);
+    // u16 isa_freq_length = strlen(isa_freq);
+    // u8 isa_freq_row = 8;
 
     int com1_index = s->com1_clock_index ? (s->com1_clock_ratio_index ? 2 : 1) : 0;
     char com1[cap];
     snprintf(com1, cap, "%s: %s", com1_title, com_values[com1_index]);
     u16 com1_length = strlen(com1);
-    u8 com1_row = 10;
+    u8 com1_row = 8;
 
     int com2_index = s->com2_clock_index ? (s->com2_clock_ratio_index ? 2 : 1) : 0;
     char com2[cap];
     snprintf(com2, cap, "%s: %s", com2_title, com_values[com2_index]);
     u16 com2_length = strlen(com2);
-    u8 com2_row = 12;
+    u8 com2_row = 10;
 
     char boot_tune[cap];
     snprintf(boot_tune, cap, "%s: %s", boot_tune_title, boot_tune_values[s->boot_tune]);
     u16 boot_tune_length = strlen(boot_tune);
-    u8 boot_tune_row = 14;
+    u8 boot_tune_row = 12;
 
     print_color_string(cpu_freq, cpu_freq_length, color, cpu_freq_row, std_col);
     print_color_string(cache, cache_length, color, cache_row, std_col);
-    print_color_string(isa_freq, isa_freq_length, color, isa_freq_row, std_col);
+    // print_color_string(isa_freq, isa_freq_length, color, isa_freq_row, std_col);
     print_color_string(com1, com1_length, color, com1_row, std_col);
     print_color_string(com2, com2_length, color, com2_row, std_col);
     print_color_string(boot_tune, boot_tune_length, color, boot_tune_row, std_col);
@@ -703,28 +705,28 @@ void change_setting(struct bios_settings *s)
             values = enabled_disabled_values;
             change_function = &set_cache_value;
             break;
+        // case 2:
+        //     setting_selection = s->isa_freq_index;
+        //     title = isa_freq_title;
+        //     number_of_values = isa_freq_values_length;
+        //     values = isa_freq_values;
+        //     change_function = &set_isa_freq_value;
+        //     break;
         case 2:
-            setting_selection = s->isa_freq_index;
-            title = isa_freq_title;
-            number_of_values = isa_freq_values_length;
-            values = isa_freq_values;
-            change_function = &set_isa_freq_value;
-            break;
-        case 3:
             setting_selection = s->com1_clock_index ? (s->com1_clock_ratio_index ? 2 : 1) : 0;
             title = com1_title;
             number_of_values = com_values_length;
             values = com_values;
             change_function = &set_com1_values;
             break;
-        case 4:
+        case 3:
             setting_selection = s->com2_clock_index ? (s->com2_clock_ratio_index ? 2 : 1) : 0;
             title = com2_title;
             number_of_values = com_values_length;
             values = com_values;
             change_function = &set_com2_values;
             break;
-        case 5:
+        case 4:
             setting_selection = s->boot_tune;
             title = boot_tune_title;
             number_of_values = boot_tune_values_length;
