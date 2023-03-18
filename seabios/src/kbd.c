@@ -143,6 +143,17 @@ handle_1602(struct bregs *regs)
     regs->al = GET_BDA(kbd_flag0);
 }
 
+// set typematic rate
+static void
+handle_1603(struct bregs *regs)
+{
+    // only handle setting typematic rate/delay for now (AL=05)
+    if (regs->al != 0x05) return;
+
+    u8 param = ((regs->bh & 0x03) << 5) | (regs->bl & 0x05);
+    kbd_command(ATKBD_CMD_SETRATEDELAY, &param);
+}
+
 // store key-stroke into buffer
 static void
 handle_1605(struct bregs *regs)
@@ -266,6 +277,7 @@ handle_16(struct bregs *regs)
     case 0x00: handle_1600(regs); break;
     case 0x01: handle_1601(regs); break;
     case 0x02: handle_1602(regs); break;
+    case 0x03: handle_1603(regs); break;
     case 0x05: handle_1605(regs); break;
     case 0x09: handle_1609(regs); break;
     case 0x0a: handle_160a(regs); break;
